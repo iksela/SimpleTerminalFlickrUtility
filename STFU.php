@@ -61,9 +61,10 @@ class SimpleTerminalFlickrUtility {
 		$avgSpeed = round($this->bytesUploaded/1024 / ($end - $this->startTime));
 
 		$seconds = ($this->bytesToUpload - $this->bytesUploaded)/1024 / $avgSpeed;
-		// we add the number of files to the seconds, estimating that 1 query to add to an album = 1s
-		$minutes = round(($seconds + $this->totalCount) / 60);
-		$eta = ($minutes < 1) ? "< 1 minute" : "$minutes minutes";
+		// we add the number of files to the seconds, estimating that 1 query to add to an album = 2s
+		$seconds += $this->totalCount*2;
+		
+		$eta = gmdate("H:i:s", $seconds);
 
 		Color::ok(false);
 		echo "[Speed: $speed Kb/s\tAverage: $avgSpeed Kb/s\t$this->count files to upload\tETA: $eta]\n";
