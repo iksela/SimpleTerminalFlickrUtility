@@ -6,7 +6,8 @@ $stfu = new SimpleTerminalFlickrUtility('Recursive Folder Asynchronous Uploader'
 $root = 'Albums\\';
 
 if (count($argv) < 2) {
-	echo "Usage: php ".$argv[1]." <folder>\n";
+	Color::text("Usage: php ".$argv[0]." <folder>\n", Color::red);
+	exit;
 }
 
 $dir = new RecursiveDirectoryIterator($argv[1], FilesystemIterator::SKIP_DOTS);
