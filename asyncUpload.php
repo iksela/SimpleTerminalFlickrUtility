@@ -3,7 +3,7 @@ require_once 'STFU.php';
 
 $stfu = new SimpleTerminalFlickrUtility('Recursive Folder Asynchronous Uploader');
 
-$root = 'Albums\\';
+$root = $stfu->root;
 
 if (count($argv) < 2) {
 	Color::text("Usage: php ".$argv[0]." <folder>\n", Color::red);

@@ -2,9 +2,8 @@
 require_once('phpflickr/phpFlickr.php');
 
 class SimpleTerminalFlickrUtility {
-	private $key	= '';
-	private $secret	= '';
-	private $token	= '';
+
+	public $root = null;
 
 	public $api = null;
 
@@ -18,8 +17,10 @@ class SimpleTerminalFlickrUtility {
 	public function __construct($moduleName=null) {
 		Color::text("STFU $moduleName\n\n", Color::blue);
 		echo "Setting up flickr connection...\t";
-		$this->api = new phpFlickr($this->key, $this->secret);
-		$this->api->setToken($this->token);
+		$cfg = parse_ini_file('config.ini', true);
+		$this->root = $cfg['stfu']['root'];
+		$this->api = new phpFlickr($cfg['api']['key'], $cfg['api']['secret']);
+		$this->api->setToken($cfg['api']['token']);
 		Color::ok();
 		$this->startTime = microtime(true);
 	}

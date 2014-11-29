@@ -9,10 +9,10 @@ class STFU_Check {
 	private $albums = array();
 	private $orphans = array();
 
-	public function __construct($folder, $root) {
+	public function __construct($folder) {
 		$this->stfu = new SimpleTerminalFlickrUtility('Folders/Albums Sync');
 		$this->folder = $folder;
-		$this->root = $root;
+		$this->root = $this->stfu->root;
 	}
 
 	public function getAlbums() {
@@ -108,14 +108,12 @@ class STFU_Check {
 }
 
 
-$root = 'Albums\\';
-
 if (count($argv) < 2) {
 	Color::text("Usage: php ".$argv[0]." <folder>\n", Color::red);
 	exit;
 }
 
-$stfu = new STFU_Check($argv[1], $root);
+$stfu = new STFU_Check($argv[1]);
 $stfu->exec();
 
 Color::text("\n\nYATA!!\n", Color::blue);
