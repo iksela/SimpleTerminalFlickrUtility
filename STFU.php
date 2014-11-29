@@ -2,9 +2,9 @@
 require_once('phpflickr/phpFlickr.php');
 
 class SimpleTerminalFlickrUtility {
-	private $key	= 'e8dba3cb5dd89239836a31efad1064ea';
-	private $secret	= 'd1719afda15f8a56';
-	private $token	= '72157646982104394-ddae6d9a116aabab';
+	private $key	= '';
+	private $secret	= '';
+	private $token	= '';
 
 	public $api = null;
 
@@ -108,16 +108,23 @@ class Album {
 	public $id;
 	public $name;
 	public $nbItems;
+	private $photos;
 
 	public function __construct($set) {
-		$title = $set['title']['_content'];
+		$title = utf8_encode($set['title']['_content']);
 		$this->name = $title;
 		$this->id = $set['id'];
 		$this->nbItems = intval($set['photos']) + intval($set['videos']);
 	}
 
-	public function loadPhotos($stfu) {
-		$set = $stfu->api->photosets_getPhotos($this->id);
-		return $set['photoset']['photo'];
+	public function getPhotos($stfu) {
+		//load only if needed
+		if (!$this->photos) {
+			echo "Loading metadata for album $this->name ...\t";
+			$set = $stfu->api->photosets_getPhotos($this->id);
+			$this->photos = $set['photoset']['photo'];
+			Color::ok();
+		}
+		return $this->photos;
 	}
 }

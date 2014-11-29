@@ -49,68 +49,50 @@ class STFU_Check {
 		return $found;
 	}
 
-	private function checkFolder($currentAlbum, $items) {
-		// search album
-		echo "\tExists?\t";
+	private function checkFolder($currentAlbum) {
 		if (array_key_exists($currentAlbum, $this->albums)) {
-			Color::ok(false);
+			return true;
 		}
 		else {
-			Color::text("Fail", Color::red);
+			return false;
 		}
 	}
 
 	public function check() {
-		// first folder won't be iterated over, let's init it
-		$currentAlbum = SimpleTerminalFlickrUtility::folderToAlbum(realpath($this->folder), $this->root);
-		$currentAlbum = utf8_encode($currentAlbum);
-		$set = null;
-
 		$iterator = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator($this->folder, FilesystemIterator::SKIP_DOTS),
 			RecursiveIteratorIterator::SELF_FIRST
 		);
 
-		$items = 0;
 		foreach ($iterator as $info) {
-			$path = $info->getRealpath();
+			$fullPath	= $info->getRealpath();
+			$path		= $info->getPath();
 
-			// new folder reached
-			if ($info->isDir()) {
-				$currentAlbum = SimpleTerminalFlickrUtility::folderToAlbum($path, $this->root);
-				$currentAlbum = utf8_encode($currentAlbum);
-				$set = null;
-			}
-			else {
-				if (!$set) {
-					echo "Checking album $currentAlbum ...\t";
-					if (array_key_exists($currentAlbum, $this->albums)) {
-						Color::ok();
-						echo "Loading metadata ...";
-						$set = $this->albums[$currentAlbum]->loadPhotos($this->stfu);
-						Color::ok();
-					}
-					else {
-						Color::text("Fail!", Color::red);
-					}
-				}
-				
+			if (!$info->isDir()) {
+				$currentAlbumName = SimpleTerminalFlickrUtility::folderToAlbum($path, $this->root);
+				$currentAlbumName = utf8_encode($currentAlbumName);
+
+				// If album doesn't exist, skip it
+				if (!$this->checkFolder($currentAlbumName)) continue;
+
+				$album = $this->albums[$currentAlbumName];
+
 				$filename = substr($info->getFilename(), 0, -(strlen($info->getExtension())+1));
 
-				if (self::photoExists($filename, $set) === false) {
+				if (self::photoExists($filename, $album->getPhotos($this->stfu)) === false) {
 					Color::text("$filename not found!\t", Color::red);
 					// check if photo is orphaned
 					$orphaned = self::photoExists($filename, $this->orphans);
 					if ($orphaned !== false) {
-						echo "$filename exists on flickr, but not in an album, adding it to $currentAlbum ...\t";
-						$this->stfu->api->photosets_addPhoto($this->albums[$currentAlbum]->id, $this->orphans[$orphaned]['id']);
+						echo "$filename exists on flickr, but not in an album, adding it to $currentAlbumName ...\t";
+						$this->stfu->api->photosets_addPhoto($album->id, $this->orphans[$orphaned]['id']);
 						Color::ok();
 					}
 					else {
 						// Not an orphan, only thing left to do is upload it
-						$photoID = $this->stfu->simpleUpload($path);
+						$photoID = $this->stfu->simpleUpload($fullPath);
 						echo "Add to album ...\t";
-						$this->stfu->api->photosets_addPhoto($this->albums[$currentAlbum]->id, $photoID);
+						$this->stfu->api->photosets_addPhoto($album->id, $photoID);
 						Color::ok();
 					}
 				}
