@@ -66,8 +66,7 @@ foreach ($iterator as $info) {
 		continue;
 	}
 
-	$pwet = substr($path, stripos($path, $root) + strlen($root));
-	$albumName = str_replace('\\', '::', $pwet);
+	$albumName = SimpleTerminalFlickrUtility::folderToAlbum($path, $root);
 
 	// upload file
 	$ticketId = $stfu->asyncUpload($file);
