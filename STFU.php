@@ -2,9 +2,9 @@
 require_once('phpflickr/phpFlickr.php');
 
 class SimpleTerminalFlickrUtility {
-	private $key	= '';
-	private $secret	= '';
-	private $token	= '';
+	private $key	= 'e8dba3cb5dd89239836a31efad1064ea';
+	private $secret	= 'd1719afda15f8a56';
+	private $token	= '72157646982104394-ddae6d9a116aabab';
 
 	public $api = null;
 
@@ -17,14 +17,14 @@ class SimpleTerminalFlickrUtility {
 
 	public function __construct($moduleName=null) {
 		Color::text("STFU $moduleName\n\n", Color::blue);
-		echo "Connection to flickr...\t";
+		echo "Setting up flickr connection...\t";
 		$this->api = new phpFlickr($this->key, $this->secret);
 		$this->api->setToken($this->token);
 		Color::ok();
 		$this->startTime = microtime(true);
 	}
-/*
-	public function upload($file) {
+
+	public function simpleUpload($file) {
 		$start = microtime(true);
 		echo "Uploading $file ...\t";
 		$photoId = $this->api->sync_upload($file);
@@ -32,18 +32,13 @@ class SimpleTerminalFlickrUtility {
 
 		$fileSize = filesize($file);
 
-		$this->count--;
-		$this->remainingBytes -= $fileSize;
-
 		$speed = round($fileSize/1024 / ($end - $start));
 
-		$minutes = round($this->remainingBytes/1024)
-
 		Color::ok(false);
-		echo "($speed Kb/s)\t($this->count remaining)\tETA ";
+		echo "($speed Kb/s)\t";
 
 		return $photoId;
-	}*/
+	}
 
 	public function asyncUpload($file) {
 		$start = microtime(true);
@@ -62,7 +57,7 @@ class SimpleTerminalFlickrUtility {
 
 		$seconds = ($this->bytesToUpload - $this->bytesUploaded)/1024 / $avgSpeed;
 		// we add the number of files to the seconds, estimating that 1 query to add to an album = 2s
-		$seconds += $this->totalCount*2;
+		$seconds += $this->count*2;
 		
 		$eta = gmdate("H:i:s", $seconds);
 
@@ -70,6 +65,12 @@ class SimpleTerminalFlickrUtility {
 		echo "[Speed: $speed Kb/s\tAverage: $avgSpeed Kb/s\t$this->count files to upload\tETA: $eta]\n";
 
 		return $photoId;
+	}
+
+	// Transforms a folder (eg. C:\Photos\2014\11) to an album name (eg. 2014::11), taking a root into account
+	public static function folderToAlbum($path, $root) {
+		$newPath = substr($path, stripos($path, $root) + strlen($root));
+		return str_replace('\\', '::', $newPath);
 	}
 }
 
@@ -100,5 +101,23 @@ class PostUploadAction {
 		$this->name = $name;
 		$this->albumName = $albumName;
 		$this->mustCreateAlbum = $mustCreateAlbum;
+	}
+}
+
+class Album {
+	public $id;
+	public $name;
+	public $nbItems;
+
+	public function __construct($set) {
+		$title = $set['title']['_content'];
+		$this->name = $title;
+		$this->id = $set['id'];
+		$this->nbItems = intval($set['photos']) + intval($set['videos']);
+	}
+
+	public function loadPhotos($stfu) {
+		$set = $stfu->api->photosets_getPhotos($this->id);
+		return $set['photoset']['photo'];
 	}
 }
