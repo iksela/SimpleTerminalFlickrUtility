@@ -122,7 +122,7 @@ class Album {
 		//load only if needed
 		if (!$this->photos) {
 			echo "Loading metadata for album $this->name ...\t";
-			$set = $stfu->api->photosets_getPhotos($this->id);
+			$set = $stfu->api->photosets_getPhotos($this->id, "url_o,original_format");
 			$this->photos = $set['photoset']['photo'];
 			Color::ok();
 		}
