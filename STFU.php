@@ -57,8 +57,8 @@ class SimpleTerminalFlickrUtility {
 		$avgSpeed = round($this->bytesUploaded/1024 / ($end - $this->startTime));
 
 		$seconds = ($this->bytesToUpload - $this->bytesUploaded)/1024 / $avgSpeed;
-		// we add the number of files to the seconds, estimating that 1 query to add to an album = 2s
-		$seconds += $this->count*2;
+		// we add the number of files to the seconds, estimating that 1 query to add to an album = 3s
+		$seconds += $this->count*3;
 		
 		$eta = gmdate("H:i:s", $seconds);
 
@@ -112,7 +112,7 @@ class Album {
 	private $photos;
 
 	public function __construct($set) {
-		$title = utf8_encode($set['title']['_content']);
+		$title = utf8_encode(utf8_decode($set['title']['_content']));
 		$this->name = $title;
 		$this->id = $set['id'];
 		$this->nbItems = intval($set['photos']) + intval($set['videos']);
