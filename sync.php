@@ -64,16 +64,26 @@ class STFU_Check {
 			RecursiveIteratorIterator::SELF_FIRST
 		);
 
+		$notFound = null;
+
 		foreach ($iterator as $info) {
 			$fullPath	= $info->getRealpath();
 			$path		= $info->getPath();
 
-			if (!$info->isDir()) {
-				$currentAlbumName = SimpleTerminalFlickrUtility::folderToAlbum($path, $this->root);
-				$currentAlbumName = utf8_encode($currentAlbumName);
+			$currentAlbumName = SimpleTerminalFlickrUtility::folderToAlbum($path, $this->root);
+			$currentAlbumName = utf8_encode($currentAlbumName);
 
-				// If album doesn't exist, skip it
-				if (!$this->checkFolder($currentAlbumName)) continue;
+			if (!$info->isDir()) {
+				// If album doesn't exist
+				if (!$this->checkFolder($currentAlbumName)) {
+					// If it's the first photo from a missing album, display a warning, else just skip it
+					if ($notFound != $currentAlbumName) Color::text("$currentAlbumName not found!\n", Color::red);
+					$notFound = $currentAlbumName;
+					continue;
+				}
+				else {
+					$notFound = null;
+				}
 
 				$album = $this->albums[$currentAlbumName];
 
