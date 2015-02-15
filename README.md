@@ -17,16 +17,20 @@ A folder "C:\Photos\2014\01\My Birthday" will be translated as an album "2014::0
 
 ## Uploader
 Use this to upload a local folder/tree to flickr
+
 `php asyncUpload.php <folder>`
 
 ## Reorder albums
 Use this to order your albums, most recent first
+
 `php orderAlbums.php`
 
 ## Sync
 Use this if you encountered errors while uploading, or if you added new local content that needs to be pushed to flickr
+
 `php sync.php <folder>`
 
 ## AutoSync Downloader
 Use this if you use the AutoSync feature on your phone and would like to download the AutoSync'd files in the right folders, then move the files out of the AutoSync album and into their respective albums according to the date they were taken.
+
 `php autoSyncDownloader.php <folder>`
