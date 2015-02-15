@@ -71,7 +71,12 @@ class SimpleTerminalFlickrUtility {
 	// Transforms a folder (eg. C:\Photos\2014\11) to an album name (eg. 2014::11), taking a root into account
 	public static function folderToAlbum($path, $root) {
 		$newPath = substr($path, stripos($path, $root) + strlen($root));
-		return str_replace('\\', '::', $newPath);
+		return str_replace(DIRECTORY_SEPARATOR, '::', $newPath);
+	}
+
+	public function pathToAlbum($path) {
+		$newPath = substr($path, stripos($path, $this->root) + strlen($this->root));
+		return str_replace(DIRECTORY_SEPARATOR, '::', $newPath);
 	}
 }
 
@@ -122,10 +127,18 @@ class Album {
 		//load only if needed
 		if (!$this->photos) {
 			echo "Loading metadata for album $this->name ...\t";
-			$set = $stfu->api->photosets_getPhotos($this->id, "url_o,original_format");
+			$set = $stfu->api->photosets_getPhotos($this->id, "url_o,original_format,date_taken");
 			$this->photos = $set['photoset']['photo'];
 			Color::ok();
 		}
 		return $this->photos;
+	}
+
+	// gets instance for newly created albums
+	public static function initNew($album, $title) {
+		$album['title']['_content'] = $title;
+		$album['photos'] = 0;
+		$album['videos'] = 0;
+		return new Album($album);
 	}
 }
