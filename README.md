@@ -32,5 +32,6 @@ Use this if you encountered errors while uploading, or if you added new local co
 
 ## AutoSync Downloader
 Use this if you use the AutoSync feature on your phone and would like to download the AutoSync'd files in the right folders, then move the files out of the AutoSync album and into their respective albums according to the date they were taken.
+Use the dontmove option to leave the photos in the AutoSync folder.
 
-`php autoSyncDownloader.php <folder>`
+`php autoSyncDownloader.php <folder> (optional: --dontmove)`

@@ -7,11 +7,13 @@ class STFU_ASD {
 	private $folder;
 	private $root;
 	private $albums = array();
+	private $dontmove = false;
 
-	public function __construct($folder) {
+	public function __construct($folder, $dontmove) {
 		$this->stfu = new SimpleTerminalFlickrUtility('Auto Upload Downloader');
 		$this->folder = $folder;
 		$this->root = $this->stfu->root;
+		$this->dontmove = $dontmove;
 	}
 
 	public function getAutoSyncAlbum() {
@@ -100,18 +102,24 @@ class STFU_ASD {
 			$album = $dateTaken->format('Y').'::'.$dateTaken->format('m');
 
 			$newPhotoName = $this->download($photo, $album);
-			$this->moveToAlbum($photo, $newPhotoName, $autoSyncAlbum, $album);
+			if (!$this->dontmove) $this->moveToAlbum($photo, $newPhotoName, $autoSyncAlbum, $album);
 		}
 	}
 }
 
 
 if (count($argv) < 2) {
-	Color::text("Usage: php ".$argv[0]." <folder>\n", Color::red);
+	Color::text("Usage: php ".$argv[0]." <folder> (optional: --dontmove)\n", Color::red);
 	exit;
 }
 
-$stfu = new STFU_ASD($argv[1]);
+$dontmove = false;
+
+if (count($argv) == 3) {
+	if ($argv[2] == "--dontmove") $dontmove = true;
+}
+
+$stfu = new STFU_ASD($argv[1], $dontmove);
 $stfu->exec();
 
 Color::text("\n\nYATA!!\n", Color::blue);
