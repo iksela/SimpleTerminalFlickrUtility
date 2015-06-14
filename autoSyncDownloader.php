@@ -16,35 +16,24 @@ class STFU_ASD {
 		$this->dontmove = $dontmove;
 	}
 
-	public function getAutoSyncAlbum() {
-		Color::text("Looking for Auto Sync album...\t");
-		$sets = $this->stfu->api->photosets_getList();
-
-		$found = false;
-		foreach($sets['photoset'] as $set) {
-			$album = new Album($set);
-			$this->albums[$album->name] = $album;
-			if ($album->name == "Auto Sync") {
-				Color::ok();
-				$found = $album;
-			}
-		}
-
-		if (!$found) {
-			Color::text("FAIL!\n", Color::red);
-			exit;
-		}
-		return $found;
-	}
-
 	public function download($photo, $album) {
 		$start = microtime(true);
 		Color::text("Copying ".$photo['title']." ...\t");
 
 		// filename
-		$filename = preg_replace('/[^A-Za-z0-9\-_.+~]/', '', $photo['title']);
 		// remove almost all special chars (source @ http://stackoverflow.com/questions/14114411)
-		$file = $filename.'.'.$photo['originalformat'];
+		$filename = preg_replace('/[^A-Za-z0-9\-_.+~]/', '', $photo['title']);
+
+		if ($photo['media'] == 'video') {
+			// Special URL building if asset is a video
+			$source = "https://www.flickr.com/photos/".$this->stfu->userID."/".$photo['id']."/play/orig/".$photo['originalsecret']."/";
+			// If video, assume mp4 extension
+			$file = $filename.'.mp4';
+		}
+		else {
+			$source = $photo['url_o'];
+			$file = $filename.'.'.$photo['originalformat'];
+		}
 		
 		// prepare folder & fullpath
 		$folder = $this->folder . DIRECTORY_SEPARATOR . str_replace('::', DIRECTORY_SEPARATOR, $album);
@@ -60,7 +49,7 @@ class STFU_ASD {
 		$dest = $folder . DIRECTORY_SEPARATOR . $file;
 
 		// do the copy
-		copy($photo['url_o'], $dest);
+		copy($source, $dest);
 
 		// determine speed
 		$end = microtime(true);
@@ -94,7 +83,16 @@ class STFU_ASD {
 	}
 
 	public function exec() {
-		$autoSyncAlbum = $this->getAutoSyncAlbum();
+		// create an index of all albums
+		Color::text("Listing all albums...\t");
+		$sets = $this->stfu->api->photosets_getList();
+		Color::ok();
+		foreach ($sets['photoset'] as $album) {
+			$this->albums[$album['title']['_content']] = new Album($album);
+		}
+
+		// Retrieve AutoSync album and begin downloading
+		$autoSyncAlbum = $this->stfu->getAutoSyncAlbum();
 		$photos = $autoSyncAlbum->getPhotos($this->stfu);
 		foreach ($photos as $photo) {
 			// get album from date taken

@@ -4,6 +4,8 @@ require_once('phpflickr/phpFlickr.php');
 class SimpleTerminalFlickrUtility {
 
 	public $root = null;
+	public $autoSyncAlbumName = "Auto Sync";
+	public $userID = null;
 
 	public $api = null;
 
@@ -19,6 +21,8 @@ class SimpleTerminalFlickrUtility {
 		echo "Setting up flickr connection...\t";
 		$cfg = parse_ini_file('config.ini', true);
 		$this->root = $cfg['stfu']['root'];
+		$this->userID = $cfg['api']['userid'];
+		$this->autoSyncAlbumName = $cfg['stfu']['autosync'];
 		$this->api = new phpFlickr($cfg['api']['key'], $cfg['api']['secret']);
 		$this->api->setToken($cfg['api']['token']);
 		Color::ok();
@@ -78,6 +82,28 @@ class SimpleTerminalFlickrUtility {
 		$newPath = substr($path, stripos($path, $this->root) + strlen($this->root));
 		return str_replace(DIRECTORY_SEPARATOR, '::', $newPath);
 	}
+
+	// Retrieves the AutoSync album, using a conf for the name which can vary
+	public function getAutoSyncAlbum() {
+		Color::text("Looking for Auto Sync album...\t");
+		$sets = $this->api->photosets_getList();
+
+		$found = false;
+		foreach($sets['photoset'] as $set) {
+			$album = new Album($set);
+			$this->albums[$album->name] = $album;
+			if ($album->name == $this->autoSyncAlbumName) {
+				Color::ok();
+				$found = $album;
+			}
+		}
+
+		if (!$found) {
+			Color::text("FAIL!\n", Color::red);
+			exit;
+		}
+		return $found;
+	}
 }
 
 class Color {
@@ -127,7 +153,7 @@ class Album {
 		//load only if needed
 		if (!$this->photos) {
 			echo "Loading metadata for album $this->name ...\t";
-			$set = $stfu->api->photosets_getPhotos($this->id, "url_o,original_format,date_taken");
+			$set = $stfu->api->photosets_getPhotos($this->id, "url_o,original_format,date_taken,media");
 			$this->photos = $set['photoset']['photo'];
 			Color::ok();
 		}
